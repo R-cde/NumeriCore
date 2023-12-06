@@ -1,7 +1,48 @@
-#include "./include/NumeriCore.hpp"
 #include <iostream>
+#include "./include/NumeriCore.hpp"
+
+
 
 int main() {
+    
+    DiagonalMatrix<int> dmatrix{
+        {1,2,3,4}, 
+        {1,2,3,4}, 
+        {1,2,3,4}
+    };
+
+    DiagonalMatrix<int> someDMatrix(10, 7, true); 
+    Matrix<int> someMatrix(10, 7); 
+
+    std::cout << dmatrix << std::endl;
+    std::cout << someDMatrix << std::endl;
+    std::cout << someMatrix << std::endl;
+
+    someMatrix.transpose(); 
+    
+    std::cout << someMatrix << std::endl;
+
+    someMatrix.transpose(); 
+    someMatrix.transpose();
+    Matrix<int> nm = someMatrix; 
+ 
+
+    NumeriCore::Matrix::Matrix<int> matrix1{
+        {1, 2, 3}, 
+        {4, 5, 6},
+        {7, 8, 9}
+    };
+
+    std::cout << someMatrix << std::endl;
+    std::cout << 2 * someMatrix << std::endl;
+    std::cout << matrix1 * 4 << std::endl;
+    
+
+    return 0;
+}
+
+
+/**
     // Test matrix creation
     NumeriCore::Matrix::Matrix<int> matrix1{
         {1, 2, 3},
@@ -32,7 +73,6 @@ int main() {
     std::cout << "Matrix1 + Scalar:\n" << resultScalarAddition << "\n\n";
     std::cout << "Matrix1 - Scalar:\n" << resultScalarSubtraction << "\n\n";
     std::cout << "Matrix1 * Scalar:\n" << resultScalarMultiplication << "\n\n";
-
     // Test compound assignment with matrices and scalars
     matrix1 += matrix2;
     std::cout << "Matrix1 after += Matrix2:\n" << matrix1 << "\n\n";
@@ -65,5 +105,7 @@ int main() {
         std::cout << "Matrix1 is equal to Matrix2\n";
     }
 
-    return 0;
-}
+*/
+
+
+    
