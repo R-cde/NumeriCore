@@ -45,9 +45,12 @@ namespace NumeriCore
             Matrix<T> operator -(const T& scalar); // some Number for scalar
             Matrix<T> operator *(const T& scalar); // some Number for scalar
 
-            template <class U> friend Matrix<U> operator +(const U scalar, Matrix<U>& matrix); // make it possible to add number from the left side to matrix         
-            template <class U> friend Matrix<U> operator -(const U scalar, Matrix<U>& matrix); // make it possible to subtract  number from the left side to matrix         
-            template <class U> friend Matrix<U> operator *(const U scalar, Matrix<U>& matrix); // make it possible to multiply number from the left side to matrix         
+
+            template<class U> friend Matrix<U> operator+(const U& scalar, const Matrix<U>& mat); // some Number for scalar + Matrix
+            template<class U> friend Matrix<U> operator-(const U& scalar, const Matrix<U>& mat); // some Number for scalar - Matrix
+            template<class U> friend Matrix<U> operator*(const U& scalar, const Matrix<U>& mat); // some Number for scalar * Matrix 
+     
+
 
             Matrix<T> &operator +=(const T& scalar); // some Number for scalar 
             Matrix<T> &operator -=(const T& scalar); // some Number for scalar 
@@ -70,6 +73,7 @@ namespace NumeriCore
             size_t getCols() const; // get number of cols
             
             T getElement(size_t row, size_t col) const; // get element at index row, column
+            T& getElement(size_t row, size_t col); // get reference to element at index row
 
             void saveDiagonal(); // save diagonal of matrix in m_diagonal 
             void printDiagonal(); // print diagonal of matrix in m_diagonal 
@@ -158,7 +162,7 @@ namespace NumeriCore
         {
             std::random_device rd;
             std::mt19937 gen(rd());
-            std::uniform_int_distribution<T> dis(-2000, 5000);
+            std::uniform_real_distribution<T> dis(-2000, 5000);
 
            // Resize m_elements to the correct dimensions
             m_elements.resize(m_rows, std::vector<T>(m_cols));
@@ -394,60 +398,6 @@ namespace NumeriCore
         }
 
 
-        template<class U>
-        Matrix<U> operator+(const U scalar, const Matrix<U>& matrix)
-        {
-            Matrix<U> result(matrix.getRows(), matrix.getCols());
-
-            for (size_t i = 0; i < matrix.getRows(); ++i) {
-                for (size_t j = 0; j < matrix.getCols(); ++j) {
-                    result.setElement(
-                        i,
-                        j, 
-                        matrix.getElement(i, j) + scalar
-                    );
-                }                
-            }
-            return result;
-        } 
-
-
-        template<class U>
-        Matrix<U> operator-(const U scalar, const Matrix<U>& matrix)
-        {
-            Matrix<U> result(matrix.getRows(), matrix.getCols());
-
-            for (size_t i = 0; i < matrix.getRows(); ++i) {
-                for (size_t j = 0; j < matrix.getCols(); ++j) {
-                    result.setElement(
-                        i,
-                        j, 
-                        matrix.getElement(i, j) - scalar
-                    );
-                }                
-            }
-            return result;
-        } 
-
-
-        template<class U>
-        Matrix<U> operator*(const U scalar, const Matrix<U>& matrix)
-        {
-            Matrix<U> result(matrix.getRows(), matrix.getCols());
-
-            for (size_t i = 0; i < matrix.getRows(); ++i) {
-                for (size_t j = 0; j < matrix.getCols(); ++j) {
-                    result.setElement(
-                        i,
-                        j, 
-                        matrix.getElement(i, j) * scalar
-                    );
-                }
-            }
-
-            return result;
-        } 
-
         /**
         * @brief Adds a scalar to each element of the matrix.
         * @param scalar The scalar value to add to each element.
@@ -623,7 +573,6 @@ namespace NumeriCore
         {
             return this->m_cols;
         }
-
         template<class T> 
         size_t Matrix<T>::getRows() const
         {
@@ -635,6 +584,19 @@ namespace NumeriCore
         {
             m_elements.at(row).at(col) = element;
         }
+
+        template<class T> 
+        T Matrix<T>::getElement(size_t row, size_t col) const
+        {
+            return static_cast<T>(m_elements.at(row).at(col));
+        }
+
+        template<class T> 
+        T& Matrix<T>::getElement(size_t row, size_t col) 
+        {
+            return m_elements.at(row).at(col);
+        }
+
 
         template<class T> 
         void Matrix<T>::reserve(size_t value)
@@ -684,6 +646,44 @@ namespace NumeriCore
         }
 
 
+        template<class U>
+        Matrix<U> operator+(const U& scalar, const Matrix<U>& mat) 
+        {
+            Matrix<U> result = mat;
+            for (size_t i = 0; i < mat.getRows(); ++i) {
+                for (size_t j = 0; j < mat.getCols(); ++j) {
+                    result.setElement(i, j, mat.getElement(i, j) + scalar);
+                }
+            }
+            return result;
+        }
+
+        template<class U>
+        Matrix<U> operator-(const U& scalar, const Matrix<U>& mat) 
+        {
+            Matrix<U> result = mat;
+            for (size_t i = 0; i < mat.getRows(); ++i) {
+                for (size_t j = 0; j < mat.getCols(); ++j) {
+                    result.setElement(i, j, mat.getElement(i, j) - scalar);
+                }
+            }
+            return result;
+        }
+
+        template<class U>
+        Matrix<U> operator*(const U& scalar, const Matrix<U>& mat) 
+        {
+            Matrix<U> result (mat.getCols(), mat.getRows());
+            for (size_t i = 0; i < mat.getRows(); ++i) {
+                for (size_t j = 0; j < mat.getCols(); ++j) {
+                    result.setElement(i, j, mat.getElement(i, j) * scalar);
+                    std::cout <<"I : " << i << "\tJ : "<< j << "\tresult : "<< result.getElement(i, j) << "\n";
+                }
+            }
+            return result;
+        }
+
+        
 
 
     }; // end namespace Matrix

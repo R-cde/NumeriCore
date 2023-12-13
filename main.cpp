@@ -5,107 +5,29 @@
 
 int main() {
     
-    DiagonalMatrix<int> dmatrix{
+    DiagonalMatrix<float> dmatrix{
         {1,2,3,4}, 
         {1,2,3,4}, 
         {1,2,3,4}
     };
-
-    DiagonalMatrix<int> someDMatrix(10, 7, true); 
-    Matrix<int> someMatrix(10, 7); 
-
-    std::cout << dmatrix << std::endl;
-    std::cout << someDMatrix << std::endl;
-    std::cout << someMatrix << std::endl;
-
-    someMatrix.transpose(); 
-    
-    std::cout << someMatrix << std::endl;
-
-    someMatrix.transpose(); 
-    someMatrix.transpose();
-    Matrix<int> nm = someMatrix; 
- 
-
-    NumeriCore::Matrix::Matrix<int> matrix1{
+    NumeriCore::Matrix::Matrix<float> matrix1{
         {1, 2, 3}, 
         {4, 5, 6},
         {7, 8, 9}
     };
 
-    std::cout << someMatrix << std::endl;
-    std::cout << 2 * someMatrix << std::endl;
-    std::cout << matrix1 * 4 << std::endl;
-    
+    DiagonalMatrix<float> someDMatrix(10, 7, true); 
+    Matrix<float> someMatrix(10, 7);  
+
+
+    DiagonalMatrix <float> dmatrix3 (3, 3, true); 
+    std::cout << dmatrix3; 
+    std::cout << dmatrix3 * 2.f ; 
+    std::cout << 2.f * dmatrix3;     
 
     return 0;
 }
 
-
-/**
-    // Test matrix creation
-    NumeriCore::Matrix::Matrix<int> matrix1{
-        {1, 2, 3},
-        {4, 5, 6},
-        {7, 8, 9}
-    };
-    NumeriCore::Matrix::Matrix<int> matrix2{
-        {9, 8, 7},
-        {6, 5, 4},
-        {3, 2, 1}
-    };
-
-    // Test matrix addition, subtraction, and multiplication
-    NumeriCore::Matrix::Matrix<int> resultAddition = matrix1 + matrix2;
-    NumeriCore::Matrix::Matrix<int> resultSubtraction = matrix1 - matrix2;
-    NumeriCore::Matrix::Matrix<int> resultMultiplication = matrix1 * matrix2;
-
-    std::cout << "Matrix1 + Matrix2:\n" << resultAddition << "\n\n";
-    std::cout << "Matrix1 - Matrix2:\n" << resultSubtraction << "\n\n";
-    std::cout << "Matrix1 * Matrix2:\n" << resultMultiplication << "\n\n";
-
-    // Test scalar addition, subtraction, and multiplication
-    int scalar = 2;
-    NumeriCore::Matrix::Matrix<int> resultScalarAddition = matrix1 + scalar;
-    NumeriCore::Matrix::Matrix<int> resultScalarSubtraction = matrix1 - scalar;
-    NumeriCore::Matrix::Matrix<int> resultScalarMultiplication = matrix1 * scalar;
-
-    std::cout << "Matrix1 + Scalar:\n" << resultScalarAddition << "\n\n";
-    std::cout << "Matrix1 - Scalar:\n" << resultScalarSubtraction << "\n\n";
-    std::cout << "Matrix1 * Scalar:\n" << resultScalarMultiplication << "\n\n";
-    // Test compound assignment with matrices and scalars
-    matrix1 += matrix2;
-    std::cout << "Matrix1 after += Matrix2:\n" << matrix1 << "\n\n";
-
-    matrix1 -= matrix2;
-    std::cout << "Matrix1 after -= Matrix2:\n" << matrix1 << "\n\n";
-
-    matrix1 *= matrix2;
-    std::cout << "Matrix1 after *= Matrix2:\n" << matrix1 << "\n\n";
-
-    matrix1 += scalar;
-    std::cout << "Matrix1 after += Scalar:\n" << matrix1 << "\n\n";
-
-    matrix1 -= scalar;
-    std::cout << "Matrix1 after -= Scalar:\n" << matrix1 << "\n\n";
-
-    matrix1 *= scalar;
-    std::cout << "Matrix1 after *= Scalar:\n" << matrix1 << "\n\n";
-
-    // Test matrix equality and inequality
-    if (matrix1 == matrix2) {
-        std::cout << "Matrix1 is equal to Matrix2\n";
-    } else {
-        std::cout << "Matrix1 is not equal to Matrix2\n";
-    }
-
-    if (matrix1 != matrix2) {
-        std::cout << "Matrix1 is not equal to Matrix2\n";
-    } else {
-        std::cout << "Matrix1 is equal to Matrix2\n";
-    }
-
-*/
 
 
     
