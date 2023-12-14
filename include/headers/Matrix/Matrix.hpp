@@ -7,7 +7,9 @@
 #include <math.h> 
 #include <iomanip>
 #include <random> 
+#include <exception>
 
+#include "../Vector/Vector.hpp"
 
 namespace NumeriCore 
 {
@@ -102,12 +104,11 @@ namespace NumeriCore
             void transpose(); // traspose matrix
             // inverse matrix function (to add)
 
-            void gaussElimination(); 
-            void gaussJordanElimination(); 
-
-            template<class U> friend Matrix<U>& gaussEliminationCopy(); 
-            template<class U> friend Matrix<U>& gaussJordanEliminationCopy();
             
+            template<typename U> void gaussianElimination(NumeriCore::Vector::Vector<U>& resultVector); 
+            template<typename U> void gaussianJordanElimination(NumeriCore::Vector::Vector<T>& resultVector); 
+
+            template<typename U> NumeriCore::Vector::Vector<U> solveSystem(NumeriCore::Vector::Vector<U>& vector);
 
 
         protected:
@@ -850,28 +851,82 @@ namespace NumeriCore
         }
 
 
-        template<class T> 
-        void Matrix<T>::gaussElimination() 
-        {
-           
+        template<class T>
+        template<typename U>
+        void NumeriCore::Matrix::Matrix<T>::gaussianElimination(NumeriCore::Vector::Vector<U>& resultVector) 
+        {   
+            for (size_t i = 0; i < this->getRows(); ++i) { 
+                // Find the pivot element
+                size_t pivotIndex = i;
+                for (size_t j = i + 1; j < this->getRows() && j < resultVector.getSize() && this->getElement(j, i) != 0; ++j) {
+                    if (std::abs(this->getElement(j, i)) > std::abs(this->getElement(pivotIndex, i))) {
+                        pivotIndex = j;
+                    }
+                }
+
+                // Swap rows based on the pivot element
+                if (pivotIndex != i) {
+                    for (size_t col = 0; col < this->getCols(); ++col) {
+                        U tempElement = this->getElement(pivotIndex, col);
+                        this->setElement(pivotIndex, col, this->getElement(i, col));
+                        this->setElement(i, col, tempElement);
+                    }
+
+                    U tempValue = resultVector.getElement(pivotIndex);
+                    resultVector[pivotIndex] = resultVector[i];
+                    resultVector[i] = tempValue;
+                }
+
+                    // Perform forward elimination
+                for (size_t k = i + 1; k < this->getRows() && k < resultVector.getSize(); ++k) {
+                    if (this->getElement(k, i) == 0) {
+                        break;
+                    }
+
+                    U factor = this->getElement(k, i) / this->getElement(i, i);
+                    resultVector[k] -= resultVector[i] * factor;
+
+                    for (size_t j = i; j < this->getCols(); ++j) {
+                        this->setElement(k, j, this->getElement(k, j) - factor * this->getElement(i, j));
+                    }
+
+                    if (k >= resultVector.getSize()) {
+                        break;
+                    }
+                }
+            }
         }
 
-        template<class T> 
-        void Matrix<T>::gaussJordanElimination() 
+
+
+
+        template<class T>
+        template<typename U>
+        NumeriCore::Vector::Vector<U> Matrix<T>::solveSystem(NumeriCore::Vector::Vector<U>& vector) 
         {
 
-        }
+            this->gaussianElimination(vector);
+            Vector::Vector<T> x(this->getRows());             // Calculate the solution vector
 
-        template<class U> 
-        Matrix<U>& gaussEliminationCopy() 
-        {
+            for (int i = this->getRows() - 1; i >= 0; --i) {
+                T sum = vector.getElement(i);
 
-        }
+                for (size_t j = i + 1; j < this->getCols(); ++j) {
+                    sum -= this->getElement(i, j) * x[j];
+                }
 
-        template<class U> 
-        Matrix<U>& gaussJordanEliminationCopy() 
-        {
+                if (std::abs(this->getElement(i, i)) < 1e-6) {
+                    throw std::runtime_error("Matrix is not solvable");
+                }
 
+                if (i < this->m_rows) {
+                    x[i] = sum / this->getElement(i, i);
+                } else {
+                    throw std::out_of_range("Index out of range");
+                }
+
+            }
+            return x;
         }
 
 

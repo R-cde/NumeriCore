@@ -4,6 +4,8 @@
 
 
 using namespace NumeriCore::Matrix; 
+using namespace NumeriCore::Vector;
+
 
 int main() {
     // Test matrix creation
@@ -18,12 +20,23 @@ int main() {
         {6, 5, 4}
     };
 
+    Matrix<double> A = {
+        {2.0, 4.0, 50.5}, 
+        {3.0, 5.0, 71.0}, 
+        {3.0, 6.0, 10.0}
+    }; 
+    NumeriCore::Vector::Vector<double> b = {8.0, 14.0, 17.00};
 
+    Matrix<double> B = {8, 8, {-500, 500}}; 
+    Vector<double> c(8); 
+    Vector<double> d(8); 
 
-    Matrix<int> matrix3 {5, 4, {0, 100}}; 
+    std::cout << scalarProduct(c,d);
 
-    matrix3.gaussElimination();
-    std::cout << matrix3; 
+    Vector<double> x = B.solveSystem(c);
+    std::cout << "Solution: " << x << std::endl;
+    
+
 
     return 0;
 }
