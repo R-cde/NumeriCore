@@ -9,8 +9,25 @@
 #include <random> 
 
 
+#include "../Vector/Vector.hpp"
+
 namespace NumeriCore 
 {
+
+
+    /**
+     * @brief Struct representing a range with two double values.
+     * @details This struct is used to define a range with two double values, 
+     *          typically denoted as value_1 and value_2.
+     * @note It can be utilized, for example, to represent a numeric interval 
+     *       or a pair of values in a mathematical or computational context.
+     */
+    typedef struct {
+        double value_1;
+        double value_2;
+    } m_range; 
+
+
     namespace Matrix 
     {                    
         template<class T> 
@@ -23,7 +40,7 @@ namespace NumeriCore
             // ////////////////////////////////////////////////////////////////////////////////////////  
             
             Matrix() = default; 
-            Matrix(size_t _rows, size_t _cols, std::string _name = "Unkown");  
+            Matrix(size_t _rows, size_t _cols, const m_range& range = {-2000, 5000}, std::string _name = "Unkown");  
             Matrix(const std::initializer_list<std::initializer_list<T>>& _list, std::string _name = "Unkown"); 
 
             ~Matrix() = default;
@@ -33,7 +50,7 @@ namespace NumeriCore
             //  Matix class operator overload
             // ///////////////////////////////////////////////////////////////////////////////////////// 
 
-            Matrix &operator +=(const Matrix& m1); // Matrix 1 += operator
+            Matrix &operator +=(const Matrix&  m1); // Matrix 1 += operator
             Matrix &operator -=(const Matrix& m1); // Matrix 1 -= operator
             Matrix &operator *=(const Matrix& m1); // Matrix 1 *= operator
 
@@ -45,17 +62,15 @@ namespace NumeriCore
             Matrix<T> operator -(const T& scalar); // some Number for scalar
             Matrix<T> operator *(const T& scalar); // some Number for scalar
 
-
             template<class U> friend Matrix<U> operator+(const U& scalar, const Matrix<U>& mat); // some Number for scalar + Matrix
             template<class U> friend Matrix<U> operator-(const U& scalar, const Matrix<U>& mat); // some Number for scalar - Matrix
             template<class U> friend Matrix<U> operator*(const U& scalar, const Matrix<U>& mat); // some Number for scalar * Matrix 
-     
-
 
             Matrix<T> &operator +=(const T& scalar); // some Number for scalar 
             Matrix<T> &operator -=(const T& scalar); // some Number for scalar 
             Matrix<T> &operator *=(const T& scalar); // some Number for scalar
   
+
             bool operator==(const Matrix& m1); // Matrix 1
             bool operator!=(const Matrix& m1); // Matrix 1
             
@@ -73,11 +88,27 @@ namespace NumeriCore
             size_t getCols() const; // get number of cols
             
             T getElement(size_t row, size_t col) const; // get element at index row, column
-            T& getElement(size_t row, size_t col); // get reference to element at index row
+            T& getElement(size_t row, size_t col); // get reference to element at index row, column
 
             void saveDiagonal(); // save diagonal of matrix in m_diagonal 
             void printDiagonal(); // print diagonal of matrix in m_diagonal 
             std::vector<T> getDiagonal() const; // get diagonal of matrix 
+
+
+
+            std::vector<T>& getRow(size_t row) const; // return reference row of matrix 
+            std::vector<T>* getRow(size_t row); // return pointer row of matrix 
+            
+            std::vector<T>& getColumn(size_t column) const; // return reference column of matrix  
+            std::vector<T>* getColumn(size_t column); // return pointer column of matrix 
+
+            std::vector<std::vector<T>>& getRows(size_t row_start, size_t row_end) const; // return reference rows rows from row_start to row_end of matrix
+            std::vector<std::vector<T>>* getRows(size_t row_start, size_t row_end); // return pointer rows from row_start to row_end of matrix
+
+            std::vector<std::vector<T>>& getColumns(size_t column_start, size_t column_end) const; // return columns from column_start to column_end of matrix
+            std::vector<std::vector<T>>* getColumns(size_t column_start, size_t column_end); // return columns from column_start to column_end of matrix
+
+
 
             // //////////////////////////////////////////////////////////////////////////////////////////
             //  Matix class fgetters , setters and printerts
@@ -88,15 +119,27 @@ namespace NumeriCore
            
 
 
+
+            template<typename U> void gaussianElimination(NumeriCore::Vector::Vector<U>& resultVector); 
+            template<typename U> void gaussianJordanElimination(NumeriCore::Vector::Vector<T>& resultVector); 
+
+            template<typename U> NumeriCore::Vector::Vector<U> solveSystem(NumeriCore::Vector::Vector<U>& vector);
+
+
+
         protected:
             void setElement(size_t row, size_t col, T element); // set element at index row, column
             void reserve(size_t value); // reserve memory for matrix
 
         private: 
+            bool m_isSquare = (m_rows == m_cols) ? true : false;
+
             std::vector<T> m_diagonal;
             std::string m_name = "Unknown"; 
-            size_t m_rows; 
-            size_t m_cols; 
+            
+            size_t m_rows = 0; 
+            size_t m_cols = 0; 
+            
             std::vector<std::vector<T>> m_elements; 
         }; // end class Matrix
 
@@ -155,25 +198,58 @@ namespace NumeriCore
          */
 
         template<class T>
-        inline Matrix<T>::Matrix(size_t _rows, size_t _cols, std::string _name)
+        inline Matrix<T>::Matrix(size_t _rows, size_t _cols, const m_range& range, std::string _name)
             : m_name(_name)
             , m_rows(_rows)
             , m_cols(_cols)
         {
             std::random_device rd;
             std::mt19937 gen(rd());
-            std::uniform_real_distribution<T> dis(-2000, 5000);
 
-           // Resize m_elements to the correct dimensions
-            m_elements.resize(m_rows, std::vector<T>(m_cols));
+            T value; // some Value to test if its char type 
 
-            // Fill the matrix with random values
-            for (size_t i = 0; i < m_rows; ++i) {
-                for (size_t j = 0; j < m_cols; ++j) {
-                    m_elements[i][j] = static_cast<T>(dis(gen));
+
+            if constexpr (std::is_integral<T>::value) 
+            {   
+                if(std::is_same<T, char>::value) // special for char type
+                {
+                    std::uniform_int_distribution<T> dis(33, 126);
+                    m_elements.resize(m_rows, std::vector<T>(m_cols));
+
+                    // Fill the matrix with random values
+                    for (size_t i = 0; i < m_rows; ++i) {
+                        for (size_t j = 0; j < m_cols; ++j) {
+                            m_elements[i][j] = static_cast<T>(dis(gen));
+                        }
+                    }
+                }
+                else // for normal types, like int, long, etc 
+                {
+                    std::uniform_int_distribution<T> dis(range.value_1, range.value_2);
+                    m_elements.resize(m_rows, std::vector<T>(m_cols));
+
+                    // Fill the matrix with random values
+                    for (size_t i = 0; i < m_rows; ++i) {
+                        for (size_t j = 0; j < m_cols; ++j) {
+                            m_elements[i][j] = static_cast<T>(dis(gen));
+                        }
+                    }
+                }
+            } 
+            else // floating point types 
+            {
+                std::uniform_real_distribution<T> dis(range.value_1, range.value_2);
+                m_elements.resize(m_rows, std::vector<T>(m_cols));
+
+                // Fill the matrix with random values
+                for (size_t i = 0; i < m_rows; ++i) {
+                    for (size_t j = 0; j < m_cols; ++j) {
+                        m_elements[i][j] = static_cast<T>(dis(gen));
+                    }
                 }
             }
-            saveDiagonal(); 
+
+            saveDiagonal();
         }
 
 
@@ -646,6 +722,210 @@ namespace NumeriCore
         }
 
 
+        template<class T>
+        template<typename U>
+        void NumeriCore::Matrix::Matrix<T>::gaussianElimination(NumeriCore::Vector::Vector<U>& resultVector) 
+        {   
+            for (size_t i = 0; i < this->getRows(); ++i) { 
+                // Find the pivot element
+                size_t pivotIndex = i;
+                for (size_t j = i + 1; j < this->getRows() && j < resultVector.getSize() && this->getElement(j, i) != 0; ++j) {
+                    if (std::abs(this->getElement(j, i)) > std::abs(this->getElement(pivotIndex, i))) {
+                        pivotIndex = j;
+                    }
+                }
+
+                // Swap rows based on the pivot element
+                if (pivotIndex != i) {
+                    for (size_t col = 0; col < this->getCols(); ++col) {
+                        U tempElement = this->getElement(pivotIndex, col);
+                        this->setElement(pivotIndex, col, this->getElement(i, col));
+                        this->setElement(i, col, tempElement);
+                    }
+
+                    U tempValue = resultVector.getElement(pivotIndex);
+                    resultVector[pivotIndex] = resultVector[i];
+                    resultVector[i] = tempValue;
+                }
+
+                    // Perform forward elimination
+                for (size_t k = i + 1; k < this->getRows() && k < resultVector.getSize(); ++k) {
+                    if (this->getElement(k, i) == 0) {
+                        break;
+                    }
+
+                    U factor = this->getElement(k, i) / this->getElement(i, i);
+                    resultVector[k] -= resultVector[i] * factor;
+
+                    for (size_t j = i; j < this->getCols(); ++j) {
+                        this->setElement(k, j, this->getElement(k, j) - factor * this->getElement(i, j));
+                    }
+
+                    if (k >= resultVector.getSize()) {
+                        break;
+                    }
+                }
+            }
+        }
+
+
+
+
+        template<class T>
+        template<typename U>
+        NumeriCore::Vector::Vector<U> Matrix<T>::solveSystem(NumeriCore::Vector::Vector<U>& vector) 
+        {
+
+            this->gaussianElimination(vector);
+            Vector::Vector<T> x(this->getRows());             // Calculate the solution vector
+
+            for (int i = this->getRows() - 1; i >= 0; --i) {
+                T sum = vector.getElement(i);
+
+                for (size_t j = i + 1; j < this->getCols(); ++j) {
+                    sum -= this->getElement(i, j) * x[j];
+                }
+
+                if (std::abs(this->getElement(i, i)) < 1e-6) {
+                    throw std::runtime_error("Matrix is not solvable");
+                }
+
+                if (i < this->m_rows) {
+                    x[i] = sum / this->getElement(i, i);
+                } else {
+                    throw std::out_of_range("Index out of range");
+                }
+
+            }
+            return x;
+        }
+
+
+
+        template<class T>
+        std::vector<T>& NumeriCore::Matrix::Matrix<T>::getRow(size_t row) const {
+            if (row >= m_rows) {
+                throw std::out_of_range("getRow: Row index out of range.");
+            }
+            return m_elements[row];
+        }
+
+        template<class T>
+        std::vector<T>* NumeriCore::Matrix::Matrix<T>::getRow(size_t row) {
+            if (row >= m_rows) {
+                throw std::out_of_range("getRow: Row index out of range.");
+            }
+            return &(m_elements[row]);
+        }
+
+        template<class T>
+        std::vector<T>& NumeriCore::Matrix::Matrix<T>::getColumn(size_t column) const {
+            if (column >= m_cols) {
+                throw std::out_of_range("getColumn: Column index out of range.");
+            }
+
+            std::vector<T>* result = new std::vector<T>();
+            result->reserve(m_rows);
+
+            for (size_t i = 0; i < m_rows; ++i) {
+                result->push_back(m_elements[i][column]);
+            }
+
+            return *result;
+        }
+
+        template<class T>
+        std::vector<T>* NumeriCore::Matrix::Matrix<T>::getColumn(size_t column) {
+            if (column >= m_cols) {
+                throw std::out_of_range("getColumn: Column index out of range.");
+            }
+
+            std::vector<T>* result = new std::vector<T>();
+            result->reserve(m_rows);
+
+            for (size_t i = 0; i < m_rows; ++i) {
+                result->push_back(m_elements[i][column]);
+            }
+
+            return result;
+        }
+
+        template<class T>
+        std::vector<std::vector<T>>& NumeriCore::Matrix::Matrix<T>::getRows(size_t row_start, size_t row_end) const {
+            if (row_start >= m_rows || row_end >= m_rows || row_start > row_end) {
+                throw std::out_of_range("getRows: Row indices out of range.");
+            }
+
+            std::vector<std::vector<T>>* result = new std::vector<std::vector<T>>();
+            result->reserve(row_end - row_start + 1);
+
+            for (size_t i = row_start; i <= row_end; ++i) {
+                result->push_back(m_elements[i]);
+            }
+
+            return *result;
+        }
+
+        template<class T>
+        std::vector<std::vector<T>>* NumeriCore::Matrix::Matrix<T>::getRows(size_t row_start, size_t row_end) {
+            if (row_start >= m_rows || row_end >= m_rows || row_start > row_end) {
+                throw std::out_of_range("getRows: Row indices out of range.");
+            }
+
+            std::vector<std::vector<T>>* result = new std::vector<std::vector<T>>();
+            result->reserve(row_end - row_start + 1);
+
+            for (size_t i = row_start; i <= row_end; ++i) {
+                result->push_back(m_elements[i]);
+            }
+
+            return result;
+        }
+
+        template<class T>
+        std::vector<std::vector<T>>& NumeriCore::Matrix::Matrix<T>::getColumns(size_t column_start, size_t column_end) const {
+            if (column_start >= m_cols || column_end >= m_cols || column_start > column_end) {
+                throw std::out_of_range("getColumns: Column indices out of range.");
+            }
+
+            std::vector<std::vector<T>>* result = new std::vector<std::vector<T>>();
+            result->reserve(m_rows);
+
+            for (size_t i = 0; i < m_rows; ++i) {
+                std::vector<T> temp;
+                temp.reserve(column_end - column_start + 1);
+                for (size_t j = column_start; j <= column_end; ++j) {
+                    temp.push_back(m_elements[i][j]);
+                }
+                result->push_back(temp);
+            }
+
+            return *result;
+        }
+
+        template<class T>
+        std::vector<std::vector<T>>* NumeriCore::Matrix::Matrix<T>::getColumns(size_t column_start, size_t column_end) {
+            if (column_start >= m_cols || column_end >= m_cols || column_start > column_end) {
+                throw std::out_of_range("getColumns: Column indices out of range.");
+            }
+
+            std::vector<std::vector<T>>* result = new std::vector<std::vector<T>>();
+            result->reserve(m_rows);
+
+            for (size_t i = 0; i < m_rows; ++i) {
+                std::vector<T> temp;
+                temp.reserve(column_end - column_start + 1);
+                for (size_t j = column_start; j <= column_end; ++j) {
+                    temp.push_back(m_elements[i][j]);
+                }
+                result->push_back(temp);
+            }
+
+            return result;
+        }
+
+
+
         template<class U>
         Matrix<U> operator+(const U& scalar, const Matrix<U>& mat) 
         {
@@ -677,7 +957,6 @@ namespace NumeriCore
             for (size_t i = 0; i < mat.getRows(); ++i) {
                 for (size_t j = 0; j < mat.getCols(); ++j) {
                     result.setElement(i, j, mat.getElement(i, j) * scalar);
-                    std::cout <<"I : " << i << "\tJ : "<< j << "\tresult : "<< result.getElement(i, j) << "\n";
                 }
             }
             return result;
