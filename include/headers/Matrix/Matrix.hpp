@@ -7,13 +7,13 @@
 #include <math.h> 
 #include <iomanip>
 #include <random> 
+#include <concepts>
 
 
 #include "../Vector/Vector.hpp"
 
 namespace NumeriCore 
 {
-
 
     /**
      * @brief Struct representing a range with two double values.
@@ -29,7 +29,7 @@ namespace NumeriCore
 
 
     namespace Matrix 
-    {                    
+    {          
         template<class T> 
         class Matrix
         {
@@ -39,12 +39,14 @@ namespace NumeriCore
             // Matix class c-tors and d-tors
             // ////////////////////////////////////////////////////////////////////////////////////////  
             
-            Matrix() = default; 
+            Matrix() = default;  
             Matrix(size_t _rows, size_t _cols, const m_range& range = {-2000, 5000}, std::string _name = "Unkown");  
             Matrix(const std::initializer_list<std::initializer_list<T>>& _list, std::string _name = "Unkown"); 
 
-            ~Matrix() = default;
+            Matrix(Matrix&&) noexcept = default;  // Default move constructor
 
+
+            ~Matrix() = default;
 
             // //////////////////////////////////////////////////////////////////////////////////////////
             //  Matix class operator overload
@@ -118,12 +120,10 @@ namespace NumeriCore
             void inverse();
            
 
-
-
             template<typename U> void gaussianElimination(NumeriCore::Vector::Vector<U>& resultVector); 
             template<typename U> void gaussianJordanElimination(NumeriCore::Vector::Vector<T>& resultVector); 
 
-            template<typename U> NumeriCore::Vector::Vector<U> solveSystem(NumeriCore::Vector::Vector<U>& vector);
+            template<typename U> NumeriCore::Vector::Vector<U> solveSystem(NumeriCore::Vector::Vector<U> vector);
 
 
 
@@ -144,6 +144,9 @@ namespace NumeriCore
         }; // end class Matrix
 
 
+        // ///////////////////////////////////////////////////////////////////////////////////////////
+        // Matix class private methods --------------------------------
+        // //////////////////////////////////////////////////////////////////////////////////////////
 
 
         // ///////////////////////////////////////////////////////////////////////////////////////////
@@ -185,7 +188,7 @@ namespace NumeriCore
                 m_elements.push_back(tempRow);
             } 
 
-            saveDiagonal(); 
+            saveDiagonal();
         } 
 
     
@@ -252,6 +255,9 @@ namespace NumeriCore
             saveDiagonal();
         }
 
+
+        
+        
 
         // //////////////////////////////////////////////////////////////////////////////////////////
         // Matix class operators
@@ -773,7 +779,7 @@ namespace NumeriCore
 
         template<class T>
         template<typename U>
-        NumeriCore::Vector::Vector<U> Matrix<T>::solveSystem(NumeriCore::Vector::Vector<U>& vector) 
+        NumeriCore::Vector::Vector<U> Matrix<T>::solveSystem(NumeriCore::Vector::Vector<U> vector) 
         {
 
             this->gaussianElimination(vector);

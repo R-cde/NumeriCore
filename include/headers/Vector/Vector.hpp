@@ -19,6 +19,13 @@ namespace NumeriCore
 			Vector(std::initializer_list<T> values, const std::string name = "Unknown");
 			Vector(std::initializer_list<T>& values, const std::string name = "Unknown");
 
+
+			Vector(const Vector& other);
+			Vector(Vector&&) noexcept = default;             // Delete move constructor
+			Vector& operator=(Vector&&) = delete;  // Delete move assignment operator
+
+			~Vector() = default;
+
 		public:
 
 			Vector	operator+	(const Vector& v) const;
@@ -41,26 +48,30 @@ namespace NumeriCore
 			Vector	operator/	(const T a);
 			Vector& operator/=	(const T a) const;
 
+			Vector& operator= (const Vector<T>& vec); 
+			Vector& operator= (const Vector<T>&& vec); 
+
 			T& operator[](size_t index);
 			const T& operator[](size_t index) const;
 
 			bool operator==(const Vector& v);
 			bool operator!=(const Vector<T>& v);
 
+			template<typename U>
 			friend std::ostream& operator<<(std::ostream& os, const Vector<U>& vec);
 
 		public:
-			float magnitude();
-			friend float scalarProduct			(const Vector<T>& v1,				const Vector<T>& v2);
-			friend float angeleBetweenVector	(const Vector<T>& v1,				const Vector<T>& v2);
-			friend float scalarTripleProduct	(const Vector<T>& v1,				const Vector<T>& v2,			const Vector<T>& v3);
-			friend Vector<T> crossProduct		(const Vector<T>& v1,				const Vector<T>& v2);
+			float magnitude() const;
+			float scalarProduct					(const Vector<T>& v1) const;
+			float angleBetweenVector			(const Vector<T>& v1) const;
+			float scalarTripleProduct			(const Vector<T>& v2,				const Vector<T>& v3) const;
+			Vector<T> crossProduct				(const Vector<T>& v2) const;
 			friend Vector<T> reflect			(const Vector<T>& incident,			const Vector<T>& normal);
 			friend Vector<T> interpolate		(const Vector<T>& startVector,		const Vector<T>& endVector,		float t);
 			friend Vector<T> vectorLerp			(const Vector<T>& startVector,		const Vector<T>& endVector,		float t);
 			friend Vector<T> refract			(const Vector<T>& incident,			const Vector<T>& normal,		float eta1, float eta2);
 
-			Vector<T>& normalize();
+			Vector<T>& normalize() const;
 
 		public: 
 
@@ -68,6 +79,9 @@ namespace NumeriCore
 			const T& getElement(size_t index) const;
 			const size_t getSize() const;
 
+			template<size_t Index>
+			void setElement(const T& value); 
+			void setElement(const size_t index, T&& value);
 			void setElement(const size_t index, const T& value);
 			void setElement(const size_t index, const T value);
 
@@ -75,6 +89,21 @@ namespace NumeriCore
 			std::vector<T> m_elements;
 			std::string m_name = "Unknown";
 		};
+
+
+		template<typename U>  float magnitude				(const Vector<U>& v1);
+		template<typename U>  float scalarProduct			(const Vector<U>& v1, 			const Vector<U>& v2);
+		template<typename U>  float angleBetweenVector 		(const Vector<U>& v1, 			const Vector<U>& v2); 
+		template<typename U>  float scalarTripleProduct 	(const Vector<U>& v1, 			const Vector<U>& v2, 		const Vector<U>& v3); 
+		template<class U>   Vector<U> crossProduct 			(const Vector<U>& v1, 			const Vector<U>& v2);
+		
+
+		template <typename T>
+		inline Vector<T>::Vector(const Vector& other) 
+			: m_elements(other.m_elements)
+			, m_name(other.m_name) 
+		{}
+
 
 
 		template<typename T>
@@ -265,6 +294,29 @@ namespace NumeriCore
 			}
 		}
 
+
+		template <typename T> 
+		inline Vector<T>& Vector<T>::operator= (const Vector& vector) 
+		{
+			if (this != &vector)
+			{
+				m_elements = vector.m_elements;
+				m_name = vector.m_name;
+			}
+			return *this;
+		}
+
+		template <typename T> 
+		inline Vector<T>& Vector<T>::operator= (const Vector&& vector) 
+		{
+			if (this != &vector)
+			{
+				m_elements = vector.m_elements;
+				m_name = vector.m_name;
+			}
+			return *this;
+		}
+
 		template<typename T>
 		inline T& Vector<T>::operator[](const size_t pos)
 		{
@@ -315,8 +367,8 @@ namespace NumeriCore
 			return false;
 		}
 
-		template<typename T>
-		std::ostream& operator<<(std::ostream& os, const Vector<T>& vec) {
+		template<typename U>
+		std::ostream& operator<<(std::ostream& os, const Vector<U>& vec) {
 			os << "[ ";
 			for (size_t i = 0; i < vec.getSize(); ++i) {
 				os << vec[i];
@@ -330,7 +382,7 @@ namespace NumeriCore
 
 
 		template<typename T>
-		inline float Vector<T>::magnitude()
+		inline float Vector<T>::magnitude() const
 		{
 			if (m_elements.size() == 0) {
 				throw std::invalid_argument("Vector can not be empty");
@@ -344,7 +396,70 @@ namespace NumeriCore
 
 
 		template<typename T>
-		inline Vector<T>& Vector<T>::normalize()
+		inline float Vector<T>::scalarProduct(const Vector<T>& v1) const
+		{
+			if (v1.getSize() != m_elements.size()) {
+				throw std::invalid_argument("Vectors must have the same size");
+			}
+
+			float result = 0;
+			for (size_t i = 0; i < v1.getSize(); ++i) {
+				result += v1.getElement(i) * m_elements.at(i);
+			}
+
+			return result;
+		}
+
+
+
+		template<typename T> 
+		float Vector<T>::angleBetweenVector(const Vector<T>& v1) const
+		{
+			if (this->m_elements.size() != v1.getSize()) {
+				throw std::invalid_argument("Vectors must have the same size!");
+			}
+
+			float dotProduct = this->scalarProduct(v1);
+			float magnitudesProduct = v1.magnitude() * this->magnitude();
+
+			return (std::acos(dotProduct / magnitudesProduct)) * (180 / M_PI);
+		}
+
+
+
+		template <typename T>
+		float Vector<T>::scalarTripleProduct(const Vector<T>& v2, const Vector<T>& v3) const
+		{
+			if (getSize() != v2.getSize() || getSize() != v3.getSize()) {
+				throw std::invalid_argument("Vectors must have the same size!");
+			}
+
+			Vector<T> crossProductResult = v2.crossProduct(v3);
+			float result = this->scalarProduct(crossProductResult);
+
+			return result;
+		}
+
+
+		template <typename T>
+		Vector<T> Vector<T>::crossProduct(const Vector<T>& v) const
+		{
+			if (getSize() != v.getSize() || getSize() != 3)
+			{
+				throw std::invalid_argument("Cross product is only defined for 3D vectors!");
+			}
+
+			Vector<T> result(3);
+			result.template setElement<0>(static_cast<T>(getElement(1) * v.getElement(2) - getElement(2) * v.getElement(1)));
+			result.template setElement<1>(static_cast<T>(getElement(2) * v.getElement(0) - getElement(0) * v.getElement(2)));
+			result.template setElement<2>(static_cast<T>(getElement(0) * v.getElement(1) - getElement(1) * v.getElement(0)));
+
+			return result;
+		}
+
+
+		template<typename T>
+		inline Vector<T>& Vector<T>::normalize() const
 		{
 			float mag = this->magnitude();
 			if (mag == 0) {
@@ -355,22 +470,6 @@ namespace NumeriCore
 			}
 			return *this;
 		}
-
-
-		template<typename T>
-		float scalarProduct(const Vector<T>& v1, const Vector<T>& v2) {
-			if (v1.getSize() != v2.getSize()) {
-				throw std::invalid_argument("Vectors must have the same size");
-			}
-
-			float result = 0;
-			for (size_t i = 0; i < v1.getSize(); ++i) {
-				result += v1.getElement(i) * v2.getElement(i);
-			}
-
-			return result;
-		}
-
 
 
 		template<class T>
@@ -396,13 +495,25 @@ namespace NumeriCore
 
 
 		template<class T>
-		const size_t Vector<T>::getSize() const {
+		const size_t Vector<T>::getSize() const 
+		{
 			return m_elements.size();
 		}
 
 
+		template<typename T>
+		template<size_t Index>
+		void Vector<T>::setElement(const T& value) 
+		{
+			if (Index < m_elements.size()) {
+				m_elements[Index] = value;
+			}
+			else {
+				throw std::out_of_range("Index out of range");
+			}
+		}
 
-		
+
 		template<typename T>
 		inline void Vector<T>::setElement(const size_t index, const T& value)
 		{
@@ -410,6 +521,16 @@ namespace NumeriCore
 				throw std::out_of_range("Index out of range");
 			}
 			m_elements[index] = value;
+		}
+
+
+		template<typename T>
+		inline void Vector<T>::setElement(const size_t index, T&& value)
+		{
+			if (index >= m_elements.size()) {
+				throw std::out_of_range("Index out of range");
+			}
+			m_elements[index] = std::forward<T>(value);
 		}
 
 
@@ -423,19 +544,6 @@ namespace NumeriCore
 			}
 		}
 
-
-		template<typename T> 
-		float angeleBetweenVector(const Vector<T>& v1, const Vector<T>& v2)
-		{
-			if (v1.m_elements.size() != v2.m_elements.size()) {
-				throw std::invalid_argument("Vectors must have the same size!");
-			}
-
-			float dotProduct = scalarProduct(v1, v2);
-			float magnitudesProduct = v1.magnitude() * v2.magnitude();
-
-			return (std::acos(dotProduct / magnitudesProduct)) * (180 / M_PI);
-		}
 	};
 };
 
