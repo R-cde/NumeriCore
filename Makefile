@@ -1,3 +1,4 @@
+
 CXX = g++
 CXXFLAGS = -std=c++20 -fmodules-ts -I./include -w
 
@@ -24,3 +25,16 @@ clean:
 .PHONY: run
 run: $(TARGET)
 	./$(TARGET)
+
+.PHONY: debug
+debug: CXXFLAGS += -g
+debug: clean $(TARGET)
+
+.PHONY: o2
+o2: CXXFLAGS += -O2
+o2: clean $(TARGET)
+
+.PHONY: o3
+o3: CXXFLAGS += -O3
+o3: clean $(TARGET)
+
